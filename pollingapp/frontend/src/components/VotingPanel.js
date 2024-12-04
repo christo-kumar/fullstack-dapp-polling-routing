@@ -9,7 +9,11 @@ const VotingPanel = () => {
     const fetchCandidates = async () => {
       try {
         const candidatesList = await getCandidates();
-        setCandidates(candidatesList);
+        if (Array.isArray(candidatesList) && candidatesList.length === 0) {
+          //alert("No candidates found.");
+        } else {
+          setCandidates(candidatesList);
+        }
       } catch (error) {
         console.error(error.message);
         alert("Error fetching candidates.");

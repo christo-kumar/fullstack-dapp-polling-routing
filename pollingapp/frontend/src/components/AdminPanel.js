@@ -72,7 +72,7 @@ const AdminPanel = () => {
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching election winner.");
+        //alert("Error Fetching election winner.");
       }
     };
 
