@@ -12,6 +12,7 @@ import {
   hasElectionFinalizedFromContract,
   getWinner,
 } from "../contract"; // Ensure these functions are imported correctly
+import { PINATA_JWT, PINATA_GATEWAY } from "../config";
 
 const AdminPanel = () => {
   const [electionName, setElectionName] = useState("");
