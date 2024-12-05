@@ -429,6 +429,19 @@ export const addCandidate = async (candidateAddress, name, party) => {
   }
 };
 
+// Function to fetch candidates
+export const getCandidates = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const candidates = await contract.getCandidates();
+    console.log("Candidates fetched:", candidates);
+    return candidates;
+  } catch (error) {
+    console.error("Error fetching candidates:", error.message || error);
+    throw new Error("Failed to fetch candidates.");
+  }
+};
+
 export const addVoter = async (voterAddress, name, age) => {
   try {
     const contract = await getContract();
@@ -445,19 +458,6 @@ export const addVoter = async (voterAddress, name, age) => {
   } catch (error) {
     console.error("Error adding voter:", error.message || error);
     throw new Error("Failed to add voter.");
-  }
-};
-
-// Function to fetch candidates
-export const getCandidates = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const candidates = await contract.getCandidates();
-    console.log("Candidates fetched:", candidates);
-    return candidates;
-  } catch (error) {
-    console.error("Error fetching candidates:", error.message || error);
-    throw new Error("Failed to fetch candidates.");
   }
 };
 
