@@ -37,6 +37,8 @@ const AdminPanel = () => {
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
+        console.log(PINATA_JWT);
+        console.log(PINATA_GATEWAY);
         const candidatesList = await getCandidates();
         if (Array.isArray(candidatesList) && candidatesList.length === 0) {
           //alert("No candidates found.");
