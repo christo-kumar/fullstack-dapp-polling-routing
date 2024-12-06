@@ -233,7 +233,7 @@ const AdminPanel = () => {
     try {
       const response = await pinFileToIPFS(candidateImage);
       console.log("Image uploaded to IPFS:", response);
-      alert(`File uploaded to IPFS with CID: ${response.Hash}`);
+      alert(`File uploaded to IPFS with CID: ${response.IpfsHash}`);
     } catch (error) {
       console.error("Error uploading file to IPFS:", error);
       alert("Failed to upload file to IPFS.");
