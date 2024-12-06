@@ -55,13 +55,6 @@ const AdminPanel = () => {
         }
       );
 
-      console.log("Request Details:", {
-        url: request.url,
-        method: request.method,
-        headers: [...request.headers.entries()],
-        body: formData,
-      });
-
       const response = await fetch(request);
 
       if (!response.ok) {
