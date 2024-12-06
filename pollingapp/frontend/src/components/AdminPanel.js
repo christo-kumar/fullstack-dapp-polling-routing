@@ -44,7 +44,7 @@ const AdminPanel = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const request = new Request(
+      const uploadRequest = new Request(
         "https://api.pinata.cloud/pinning/pinFileToIPFS",
         {
           method: "POST",
@@ -55,7 +55,7 @@ const AdminPanel = () => {
         }
       );
 
-      const response = await fetch(request);
+      const response = await fetch(uploadRequest);
 
       if (!response.ok) {
         throw new Error("Failed to upload file to IPFS via Pinata.");
@@ -307,6 +307,7 @@ const AdminPanel = () => {
         <h3>Upload A Pic of Candidate</h3>
         <button onClick={handleUploadToIPFS}>Upload Image to IPFS</button>
       </div>
+
       <div>
         <h3>Add the candidate to contract</h3>
         <button onClick={handleAddCandidate}>Add Candidate</button>
