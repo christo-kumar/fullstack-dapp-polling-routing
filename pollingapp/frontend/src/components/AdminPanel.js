@@ -12,8 +12,7 @@ import {
   hasElectionFinalizedFromContract,
   getWinner,
 } from "../contract"; // Ensure these functions are imported correctly
-//import { PINATA_JWT, PINATA_GATEWAY } from "../config";
-//import { PinataSDK } from "pinata-web3";
+import { PINATA_JWT, PINATA_GATEWAY } from "../config";
 
 const AdminPanel = () => {
   const [electionName, setElectionName] = useState("");
@@ -33,6 +32,49 @@ const AdminPanel = () => {
   const [voters, setVoters] = useState([]);
   const [hasElectionStarted, setElectionStarted] = useState(false);
   const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
+  const [candidateImage, setCandidateImage] = useState(null);
+
+  const pinFileToIPFS = async (file) => {
+    try {
+      // Ensure the file is provided
+      if (!file) {
+        throw new Error("No file selected.");
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const request = new Request(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${PINATA_JWT}`,
+          },
+          body: formData,
+        }
+      );
+
+      console.log("Request Details:", {
+        url: request.url,
+        method: request.method,
+        headers: [...request.headers.entries()],
+        body: formData,
+      });
+
+      const response = await fetch(request);
+
+      if (!response.ok) {
+        throw new Error("Failed to upload file to IPFS via Pinata.");
+      }
+
+      const data = await response.json();
+      console.log("File uploaded to Pinata IPFS:", data);
+      return data;
+    } catch (error) {
+      console.error("Error uploading file to IPFS:", error);
+    }
+  };
 
   // Fetch candidates when the component mounts
   useEffect(() => {
@@ -189,6 +231,22 @@ const AdminPanel = () => {
     }
   };
 
+  const handleUploadToIPFS = async () => {
+    if (!candidateImage) {
+      alert("Please select an image file first.");
+      return;
+    }
+
+    try {
+      const response = await pinFileToIPFS(candidateImage);
+      console.log("Image uploaded to IPFS:", response);
+      alert(`File uploaded to IPFS with CID: ${response.Hash}`);
+    } catch (error) {
+      console.error("Error uploading file to IPFS:", error);
+      alert("Failed to upload file to IPFS.");
+    }
+  };
+
   return (
     <div>
       <h1>Admin Panel</h1>
@@ -243,7 +301,25 @@ const AdminPanel = () => {
           value={candidateParty}
           onChange={(e) => setCandidateParty(e.target.value)}
         />
+      </div>
+      <div>
+        <h3>Select a Pic of Candidate</h3>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setCandidateImage(e.target.files[0])}
+        />
+      </div>
+      <div>
+        <h3>Upload A Pic of Candidate</h3>
+        <button onClick={handleUploadToIPFS}>Upload Image to IPFS</button>
+      </div>
+      <div>
+        <h3>Add the candidate to contract</h3>
         <button onClick={handleAddCandidate}>Add Candidate</button>
+      </div>
+      <div>
+        <h3>Candidate List</h3>
         <ul>
           {candidates.length === 0 ? (
             <li>No candidates available.</li>
