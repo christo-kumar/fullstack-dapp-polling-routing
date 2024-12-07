@@ -33,6 +33,7 @@ const AdminPanel = () => {
   const [hasElectionStarted, setElectionStarted] = useState(false);
   const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
   const [candidateImage, setCandidateImage] = useState(null);
+  const [candidateImageHash, setCandidateImageHash] = useState("");
 
   const pinFileToIPFS = async (file) => {
     try {
@@ -234,6 +235,7 @@ const AdminPanel = () => {
       const response = await pinFileToIPFS(candidateImage);
       console.log("Image uploaded to IPFS:", response);
       alert(`File uploaded to IPFS with CID: ${response.IpfsHash}`);
+      setCandidateImageHash(response.IpfsHash);
     } catch (error) {
       console.error("Error uploading file to IPFS:", error);
       alert("Failed to upload file to IPFS.");

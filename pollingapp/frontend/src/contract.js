@@ -24,6 +24,11 @@ const abi = [
         name: "_party",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "_image",
+        type: "string",
+      },
     ],
     name: "addCandidate",
     outputs: [],
@@ -148,6 +153,11 @@ const abi = [
           {
             internalType: "string",
             name: "party",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "image",
             type: "string",
           },
           {
@@ -410,16 +420,27 @@ export const endElection = async () => {
   }
 };
 
-export const addCandidate = async (candidateAddress, name, party) => {
+export const addCandidate = async (
+  candidateAddress,
+  name,
+  party,
+  imageHash
+) => {
   try {
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
     const nonce = await provider.getTransactionCount(walletAddress);
-    const tx = await contract.addCandidate(candidateAddress, name, party, {
-      gasLimit: 1000000,
-      nonce,
-    });
+    const tx = await contract.addCandidate(
+      candidateAddress,
+      name,
+      party,
+      imageHash,
+      {
+        gasLimit: 1000000,
+        nonce,
+      }
+    );
     console.log("Transaction sent:", tx.hash);
     await tx.wait(); // Wait for the transaction to be mined
     console.log("Candidate added successfully!");

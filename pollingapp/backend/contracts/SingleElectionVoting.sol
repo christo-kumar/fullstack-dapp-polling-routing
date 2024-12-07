@@ -16,6 +16,7 @@ contract SingleElectionVoting {
         address candidateAddress;
         string name;
         string party;
+        string image; // IPFS hash of the candidate's image
         uint256 voteCount;
     }
 
@@ -82,13 +83,13 @@ contract SingleElectionVoting {
     }
 
     // Admin Function-2
-    function addCandidate(address _candidateAddress, string memory _name, string memory _party) 
+    function addCandidate(address _candidateAddress, string memory _name, string memory _party, string memory _image) 
         external 
         onlyAdmin
         onlyBefore(election.startDate - 1 days) 
     {
         require(election.candidateList[_candidateAddress].candidateAddress == address(0), "Candidate already added.");
-        election.candidateList[_candidateAddress] = Candidate(_candidateAddress, _name, _party, 0);
+        election.candidateList[_candidateAddress] = Candidate(_candidateAddress, _name, _party, _image,0);
         election.candidateAddresses.push(_candidateAddress);
     }
 

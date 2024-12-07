@@ -24,6 +24,11 @@
             "internalType": "string",
             "name": "_party",
             "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "_image",
+            "type": "string"
           }
         ],
         "name": "addCandidate",
@@ -149,6 +154,11 @@
               {
                 "internalType": "string",
                 "name": "party",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "image",
                 "type": "string"
               },
               {
