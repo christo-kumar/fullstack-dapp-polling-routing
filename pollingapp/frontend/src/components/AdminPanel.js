@@ -13,6 +13,7 @@ import {
   getWinner,
 } from "../contract"; // Ensure these functions are imported correctly
 import { PINATA_JWT, PINATA_GATEWAY } from "../config";
+import placeholderImage from "../Loading.png";
 
 const AdminPanel = () => {
   const [electionName, setElectionName] = useState("");
@@ -34,6 +35,22 @@ const AdminPanel = () => {
   const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
   const [candidateImage, setCandidateImage] = useState(null);
   const [candidateImageHash, setCandidateImageHash] = useState("");
+  const [candidateImages, setCandidateImages] = useState({});
+
+  const getFileFromIPFS = async (cid) => {
+    try {
+      if (!cid) {
+        throw new Error("CID is required to fetch the image.");
+      }
+      const url = `https://ipfs.io/ipfs/${cid}`;
+      console.log(url);
+      const request = await fetch(url);
+      const response = await request.blob();
+      return response;
+    } catch (error) {
+      console.error("Error fetching image from IPFS:", error);
+    }
+  };
 
   const pinFileToIPFS = async (file) => {
     try {
@@ -156,6 +173,28 @@ const AdminPanel = () => {
     fetchWinner();
   }, []); // Empty dependency array to run only once when the component mounts
 
+  useEffect(() => {
+    if (candidates.length === 0) return; // Do nothing if there are no candidates
+
+    const fetchCandidateImages = async () => {
+      const images = {};
+      for (const candidate of candidates) {
+        try {
+          const imageBlob = await getFileFromIPFS(candidate.image);
+          images[candidate.candidateAddress] = URL.createObjectURL(imageBlob);
+        } catch (error) {
+          console.error(
+            `Error fetching image for candidate ${candidate.name}:`,
+            error
+          );
+        }
+      }
+      setCandidateImages(images);
+    };
+
+    fetchCandidateImages();
+  }, [candidates]); // Runs only when `candidates` changes
+
   // Function to handle election creation
   const handleCreateElection = async () => {
     try {
@@ -170,7 +209,12 @@ const AdminPanel = () => {
   // Function to handle adding a candidate
   const handleAddCandidate = async () => {
     try {
-      await addCandidate(candidateAddress, candidateName, candidateParty);
+      await addCandidate(
+        candidateAddress,
+        candidateName,
+        candidateParty,
+        candidateImageHash
+      );
       setCandidates((prev) => [
         ...prev,
         {
@@ -183,6 +227,7 @@ const AdminPanel = () => {
       setCandidateAddress("");
       setCandidateName("");
       setCandidateParty("");
+      setCandidateImageHash("");
     } catch (error) {
       alert(`Error adding candidate: ${error.message}`);
     }
@@ -316,17 +361,60 @@ const AdminPanel = () => {
       </div>
       <div>
         <h3>Candidate List</h3>
-        <ul>
+        <ul style={{ listStyle: "none", padding: 0 }}>
           {candidates.length === 0 ? (
             <li>No candidates available.</li>
           ) : (
-            candidates.map((candidate, index) => (
-              <li key={index}>
-                <strong>Name:</strong> {candidate.name},<strong> Party:</strong>{" "}
-                {candidate.party},<strong>Address:</strong>{" "}
-                {candidate.candidateAddress}
-              </li>
-            ))
+            candidates.map((candidate, index) => {
+              const candidateImage =
+                candidateImages[candidate.candidateAddress];
+
+              return (
+                <li
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginBottom: "20px",
+                    borderBottom: "1px solid #ddd",
+                    paddingBottom: "10px",
+                  }}
+                >
+                  {/* Candidate Image */}
+                  <img
+                    src={candidateImage || placeholderImage}
+                    alt={`${candidate.name}'s image`}
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      borderRadius: "50%", // Makes the image circular
+                      objectFit: "cover",
+                      marginRight: "20px",
+                    }}
+                    onLoad={(e) => {
+                      if (e.target.src === placeholderImage && candidateImage) {
+                        e.target.src = candidateImage; // Switch to actual image if loaded
+                      }
+                    }}
+                    onError={(e) => {
+                      e.target.src = placeholderImage; // Fallback to placeholder if an error occurs
+                    }}
+                  />
+                  {/* Candidate Details */}
+                  <div>
+                    <p style={{ margin: 0 }}>
+                      <strong>Name:</strong> {candidate.name}
+                    </p>
+                    <p style={{ margin: 0 }}>
+                      <strong>Party:</strong> {candidate.party}
+                    </p>
+                    <p style={{ margin: 0 }}>
+                      <strong>Address:</strong> {candidate.candidateAddress}
+                    </p>
+                  </div>
+                </li>
+              );
+            })
           )}
         </ul>
       </div>
