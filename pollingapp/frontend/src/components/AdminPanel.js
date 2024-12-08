@@ -35,15 +35,15 @@ const AdminPanel = () => {
   const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
   const [candidateImage, setCandidateImage] = useState(null);
   const [candidateImageHash, setCandidateImageHash] = useState("");
-  const [candidateImages, setCandidateImages] = useState({});
+  const [mapCandidateImages, setmapCandidateImages] = useState({});
 
   const getFileFromIPFS = async (cid) => {
     try {
       if (!cid) {
         throw new Error("CID is required to fetch the image.");
       }
+
       const url = `https://ipfs.io/ipfs/${cid}`;
-      console.log(url);
       const request = await fetch(url);
       const response = await request.blob();
       return response;
@@ -175,7 +175,6 @@ const AdminPanel = () => {
 
   useEffect(() => {
     if (candidates.length === 0) return; // Do nothing if there are no candidates
-
     const fetchCandidateImages = async () => {
       const images = {};
       for (const candidate of candidates) {
@@ -189,11 +188,10 @@ const AdminPanel = () => {
           );
         }
       }
-      setCandidateImages(images);
+      setmapCandidateImages(images);
     };
-
     fetchCandidateImages();
-  }, [candidates]); // Runs only when `candidates` changes
+  }, [candidates]);
 
   // Function to handle election creation
   const handleCreateElection = async () => {
@@ -367,7 +365,7 @@ const AdminPanel = () => {
           ) : (
             candidates.map((candidate, index) => {
               const candidateImage =
-                candidateImages[candidate.candidateAddress];
+                mapCandidateImages[candidate.candidateAddress];
 
               return (
                 <li
