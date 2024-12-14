@@ -20,6 +20,7 @@ sudo npx hardhat node
 
 #8. split the new terminal window, skip sudo on windows powershell
 sudo npx hardhat run scripts/deploy.js --network localhost
+sudo npx hardhat run scripts/deployFundMe.js --network localhost
 
 #9. now configure the metamask wallet and import accounts
 
