@@ -177,7 +177,11 @@ export const getContractReadOnly = async () => {
   }
 };
 
-export const fundCandidate = async (candidateAddress, ethAmount) => {
+export const fundCandidate = async (
+  candidateAddress,
+  candiateName,
+  ethAmount
+) => {
   try {
     const contract = await getContract();
     const signer = await getSigner();
@@ -186,7 +190,7 @@ export const fundCandidate = async (candidateAddress, ethAmount) => {
     const gasLimit = 1000000;
 
     const value = ethers.parseEther(ethAmount);
-    const tx = await contract.fundCandidate(candidateAddress, "", {
+    const tx = await contract.fundCandidate(candidateAddress, candiateName, {
       value,
       gasLimit,
       nonce,
@@ -212,7 +216,7 @@ export const getFundingForCandidate = async (candidateAddress) => {
   }
 };
 
-export const getCandidates = async () => {
+export const getFundedCandidates = async () => {
   try {
     const contract = await getContractReadOnly();
     const candidates = await contract.getCandidates();

@@ -1,54 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { getCandidates } from "../contract";
-import { fundCandidate, getFundingForCandidate } from "../fundmeContract";
+import { fundCandidate, getFundedCandidates } from "../fundmeContract";
 
 const FundmePanel = () => {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState("");
   const [ethAmount, setEthAmount] = useState("");
-  const [fundingData, setFundingData] = useState({}); // For storing funding details
+  const [fundedCandidates, setFundedCandidates] = useState([]);
 
-  // Fetch the list of candidates from the main contract
+  // Fetch candidates for the dropdown
   useEffect(() => {
-    const fetchCandidates = async () => {
+    const fetchCandidatesForDropdown = async () => {
       try {
-        const candidatesList = await getCandidates();
-        if (Array.isArray(candidatesList) && candidatesList.length === 0) {
-          console.warn("No candidates found.");
-        } else {
-          setCandidates(candidatesList);
-        }
+        const candidatesList = await getCandidates(); // Fetch from contract.js
+        setCandidates(candidatesList);
       } catch (error) {
         console.error("Error fetching candidates:", error.message);
         alert("Error fetching candidates.");
       }
     };
 
-    fetchCandidates();
+    fetchCandidatesForDropdown();
   }, []);
 
-  // Fetch funding details for candidates
+  // Fetch funded candidates
   useEffect(() => {
-    const fetchFundingDetails = async () => {
+    const fetchFundedCandidates = async () => {
       try {
-        const fundingDetails = {};
-        for (const candidate of candidates) {
-          const funding = await getFundingForCandidate(
-            candidate.candidateAddress
-          );
-          fundingDetails[candidate.candidateAddress] = funding;
-        }
-        setFundingData(fundingDetails);
+        const fundedCandidatesList = await getFundedCandidates(); // Fetch directly from fundmeContract.js
+        setFundedCandidates(fundedCandidatesList);
       } catch (error) {
-        console.error("Error fetching funding details:", error.message);
+        console.error("Error fetching funded candidates:", error.message);
       }
     };
 
-    if (candidates.length > 0) {
-      fetchFundingDetails();
-    }
-  }, [candidates]);
+    fetchFundedCandidates();
+  }, []); // Fetch once on component mount
 
+  // Handle funding a candidate
   const handleFundMe = async () => {
     if (!selectedCandidate || !ethAmount) {
       alert("Please select a candidate and enter an ETH amount.");
@@ -56,18 +45,21 @@ const FundmePanel = () => {
     }
 
     try {
-      // Fund the candidate and let the smart contract handle addition if needed
-      await fundCandidate(selectedCandidate, ethAmount);
+      const selectedCandidateData = candidates.find(
+        (candidate) => candidate.candidateAddress === selectedCandidate
+      );
+      await fundCandidate(
+        selectedCandidate,
+        selectedCandidateData.name,
+        ethAmount
+      ); // Fund the candidate
       alert(`Successfully funded ${ethAmount} ETH to the candidate.`);
 
-      // Update funding data
-      const updatedFunding = await getFundingForCandidate(selectedCandidate);
-      setFundingData((prevData) => ({
-        ...prevData,
-        [selectedCandidate]: updatedFunding,
-      }));
+      // Refetch funded candidates list after funding
+      const updatedFundedCandidates = await getFundedCandidates();
+      setFundedCandidates(updatedFundedCandidates);
 
-      setEthAmount(""); // Reset input field
+      setEthAmount(""); // Reset input
     } catch (error) {
       console.error("Error funding candidate:", error.message);
       alert("Error while funding the candidate. Please try again.");
@@ -106,12 +98,11 @@ const FundmePanel = () => {
       </div>
       <button onClick={handleFundMe}>Fund Me</button>
 
-      <h2>Funding Details</h2>
+      <h2>Funded Candidates</h2>
       <ul>
-        {candidates.map((candidate) => (
+        {fundedCandidates.map((candidate) => (
           <li key={candidate.candidateAddress}>
-            {candidate.name}: {fundingData[candidate.candidateAddress] || "0"}{" "}
-            ETH
+            {candidate.name}: {candidate.fundingAmount} ETH
           </li>
         ))}
       </ul>
