@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { getCandidates } from "../contract";
-import { fundCandidate, getFundedCandidates } from "../fundmeContract";
+import {
+  fundCandidate,
+  getFundedCandidates,
+  updatePrice,
+  listenToPriceUpdates,
+} from "../fundmeContract";
 
 const FundmePanel = () => {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState("");
   const [ethAmount, setEthAmount] = useState("");
   const [fundedCandidates, setFundedCandidates] = useState([]);
+  const [ethToUsdPrice, setEthToUsdPrice] = useState(""); // For storing the latest ETH-to-USD price
 
   // Fetch candidates for the dropdown
   useEffect(() => {
@@ -37,6 +43,21 @@ const FundmePanel = () => {
     fetchFundedCandidates();
   }, []); // Fetch once on component mount
 
+  // Listen to price updates
+  useEffect(() => {
+    const startListeningToPriceUpdates = async () => {
+      try {
+        await listenToPriceUpdates((newPrice) => {
+          setEthToUsdPrice(newPrice); // Update the ETH-to-USD price when PriceUpdated event is triggered
+        });
+      } catch (error) {
+        console.error("Error listening to price updates:", error.message);
+      }
+    };
+
+    startListeningToPriceUpdates();
+  }, []);
+
   // Handle funding a candidate
   const handleFundMe = async () => {
     if (!selectedCandidate || !ethAmount) {
@@ -63,6 +84,17 @@ const FundmePanel = () => {
     } catch (error) {
       console.error("Error funding candidate:", error.message);
       alert("Error while funding the candidate. Please try again.");
+    }
+  };
+
+  // Handle price update
+  const handleUpdatePrice = async () => {
+    try {
+      await updatePrice(); // Call updatePrice from the contract
+      alert("Price update initiated. Please wait for confirmation.");
+    } catch (error) {
+      console.error("Error updating price:", error.message);
+      alert("Failed to update the price. Please try again.");
     }
   };
 
@@ -98,11 +130,22 @@ const FundmePanel = () => {
       </div>
       <button onClick={handleFundMe}>Fund Me</button>
 
+      <div>
+        <h2>ETH to USD Price</h2>
+        <p>
+          {ethToUsdPrice
+            ? `$1 ETH = ${ethToUsdPrice} USD`
+            : "Price not available"}
+        </p>
+        <button onClick={handleUpdatePrice}>Update Price</button>
+      </div>
+
       <h2>Funded Candidates</h2>
       <ul>
         {fundedCandidates.map((candidate) => (
           <li key={candidate.candidateAddress}>
-            {candidate.name}: {candidate.fundingAmount} ETH
+            {candidate.name}: {candidate.fundingAmount} ETH ( $
+            {candidate.dollarAmount})
           </li>
         ))}
       </ul>

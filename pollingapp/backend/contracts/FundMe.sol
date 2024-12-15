@@ -1,67 +1,114 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
-import "hardhat/console.sol";
 
-contract FundMe {
+import "./provableAPI.sol";
+
+contract FundMe is usingProvable {
     struct Candidate {
         address candidateAddress;
         string name;
-        uint256 fundingAmount;
+        uint256 fundingAmount; // Total funding in wei
+        string dollarAmount;   // Total funding in USD (string for "N/A" or calculated value)
     }
 
     mapping(address => Candidate) public candidates;
     address[] public candidateAddresses;
 
-    event CandidateFunded(address indexed candidate, uint256 amount);
+    string public ethUsdPrice; // ETH to USD price (as string for simplicity)
 
-    /**
-     * @dev Check if a candidate exists
-     */
-    function _isCandidate(address _candidateAddress) internal view returns (bool) {
-        return candidates[_candidateAddress].candidateAddress != address(0);
-    }
+    event CandidateFunded(address indexed candidate, uint256 ethAmount);
+    event PriceUpdated(string ethUsdPrice);
+    event PriceUpdateFailed(string reason);
 
-    /**
-     * @dev Fund a candidate. If the candidate is not already added, they are automatically added.
-     * @param _candidateAddress The address of the candidate to fund
-     * @param _name The name of the candidate (used only if adding a new candidate)
-     */
     function fundCandidate(address _candidateAddress, string memory _name) external payable {
         require(msg.value > 0, "Funding amount must be greater than 0");
 
         if (!_isCandidate(_candidateAddress)) {
-            // Add candidate if they don't exist
             candidates[_candidateAddress] = Candidate({
                 candidateAddress: _candidateAddress,
                 name: _name,
-                fundingAmount: 0
+                fundingAmount: 0,
+                dollarAmount: "N/A"
             });
             candidateAddresses.push(_candidateAddress);
         }
 
-        // Update funding amount
         candidates[_candidateAddress].fundingAmount += msg.value;
 
         emit CandidateFunded(_candidateAddress, msg.value);
     }
 
-    /**
-     * @dev Get the total funding for a specific candidate
-     * @param _candidateAddress The address of the candidate
-     */
-    function getFundingForCandidate(address _candidateAddress) external view returns (uint256) {
-        require(_isCandidate(_candidateAddress), "Candidate does not exist");
-        return candidates[_candidateAddress].fundingAmount;
+    function _isCandidate(address _candidateAddress) internal view returns (bool) {
+        return candidates[_candidateAddress].candidateAddress != address(0);
     }
 
-    /**
-     * @dev Get the list of all candidates
-     */
-    function getCandidates() external view returns (Candidate[] memory) {
+        function getCandidates() external view returns (Candidate[] memory) {
         Candidate[] memory result = new Candidate[](candidateAddresses.length);
         for (uint256 i = 0; i < candidateAddresses.length; i++) {
             result[i] = candidates[candidateAddresses[i]];
         }
         return result;
+    }
+
+
+    function updatePrice() external {
+        provable_query("URL", "json(https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd).ethereum.usd");
+    }
+
+    function __callback(string memory _result) public {
+        require(msg.sender == provable_cbAddress(), "Caller is not the provable callback address");
+
+        ethUsdPrice = _result;
+
+        for (uint256 i = 0; i < candidateAddresses.length; i++) {
+            Candidate storage candidate = candidates[candidateAddresses[i]];
+            if (bytes(ethUsdPrice).length > 0 && candidate.fundingAmount > 0) {
+                uint256 ethUsdRate = _parsePrice(ethUsdPrice);
+                uint256 usdAmountInt = (candidate.fundingAmount * ethUsdRate) / 1e18;
+                candidate.dollarAmount = _uintToString(usdAmountInt);
+            }
+        }
+
+        emit PriceUpdated(_result);
+    }
+
+    function __fallback() public payable {
+        emit PriceUpdateFailed("Price fetch failed or invalid response");
+    }
+
+    function _parsePrice(string memory _price) internal pure returns (uint256) {
+        bytes memory b = bytes(_price);
+        uint256 result = 0;
+        uint256 decimalFactor = 1;
+        bool hasDecimals = false;
+
+        for (uint256 i = 0; i < b.length; i++) {
+            if (b[i] == ".") {
+                hasDecimals = true;
+                decimalFactor = 100;
+            } else {
+                result = result * 10 + (uint8(b[i]) - 48);
+                if (hasDecimals) decimalFactor /= 10;
+            }
+        }
+
+        return result * decimalFactor;
+    }
+
+    function _uintToString(uint256 _value) internal pure returns (string memory) {
+        if (_value == 0) return "0";
+        uint256 temp = _value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (_value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(_value % 10)));
+            _value /= 10;
+        }
+        return string(buffer);
     }
 }

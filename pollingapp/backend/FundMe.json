@@ -15,12 +15,58 @@
           {
             "indexed": false,
             "internalType": "uint256",
-            "name": "amount",
+            "name": "ethAmount",
             "type": "uint256"
           }
         ],
         "name": "CandidateFunded",
         "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "reason",
+            "type": "string"
+          }
+        ],
+        "name": "PriceUpdateFailed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "ethUsdPrice",
+            "type": "string"
+          }
+        ],
+        "name": "PriceUpdated",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "_result",
+            "type": "string"
+          }
+        ],
+        "name": "__callback",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "__fallback",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
       },
       {
         "inputs": [
@@ -65,6 +111,24 @@
             "internalType": "uint256",
             "name": "fundingAmount",
             "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "dollarAmount",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "ethUsdPrice",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
           }
         ],
         "stateMutability": "view",
@@ -108,6 +172,11 @@
                 "internalType": "uint256",
                 "name": "fundingAmount",
                 "type": "uint256"
+              },
+              {
+                "internalType": "string",
+                "name": "dollarAmount",
+                "type": "string"
               }
             ],
             "internalType": "struct FundMe.Candidate[]",
@@ -119,22 +188,10 @@
         "type": "function"
       },
       {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "_candidateAddress",
-            "type": "address"
-          }
-        ],
-        "name": "getFundingForCandidate",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
+        "inputs": [],
+        "name": "updatePrice",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
       }
     ]

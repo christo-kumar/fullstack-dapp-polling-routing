@@ -14,12 +14,58 @@ const abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "amount",
+        name: "ethAmount",
         type: "uint256",
       },
     ],
     name: "CandidateFunded",
     type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "reason",
+        type: "string",
+      },
+    ],
+    name: "PriceUpdateFailed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "ethUsdPrice",
+        type: "string",
+      },
+    ],
+    name: "PriceUpdated",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_result",
+        type: "string",
+      },
+    ],
+    name: "__callback",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "__fallback",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
   },
   {
     inputs: [
@@ -65,6 +111,24 @@ const abi = [
         name: "fundingAmount",
         type: "uint256",
       },
+      {
+        internalType: "string",
+        name: "dollarAmount",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ethUsdPrice",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -108,6 +172,11 @@ const abi = [
             name: "fundingAmount",
             type: "uint256",
           },
+          {
+            internalType: "string",
+            name: "dollarAmount",
+            type: "string",
+          },
         ],
         internalType: "struct FundMe.Candidate[]",
         name: "",
@@ -118,22 +187,10 @@ const abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_candidateAddress",
-        type: "address",
-      },
-    ],
-    name: "getFundingForCandidate",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    inputs: [],
+    name: "updatePrice",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];
@@ -228,5 +285,40 @@ export const getFundedCandidates = async () => {
   } catch (error) {
     console.error("Error fetching candidates:", error.message);
     throw new Error("Failed to fetch candidates.");
+  }
+};
+
+// Function to update the price using the updatePrice() function
+export const updatePrice = async () => {
+  try {
+    const contract = await getContract();
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await provider.getTransactionCount(walletAddress);
+    const gasLimit = 2000000;
+    const tx = await contract.updatePrice({ gasLimit, nonce }); // Call the updatePrice function
+    console.log("Price update transaction sent:", tx.hash);
+    await tx.wait(); // Wait for the transaction to be mined
+    console.log("Price updated successfully.");
+  } catch (error) {
+    console.error("Error updating price:", error.message);
+    throw new Error("Failed to update the price. Please try again.");
+  }
+};
+
+export const listenToPriceUpdates = async (onPriceUpdated) => {
+  try {
+    const contract = await getContractReadOnly();
+    contract.on("PriceUpdated", (ethUsdPrice) => {
+      console.log("PriceUpdated event received:", ethUsdPrice);
+      if (onPriceUpdated) onPriceUpdated(ethUsdPrice); // Trigger the callback with the new price
+    });
+
+    contract.on("PriceUpdateFailed", (reason) => {
+      console.error("Price update failed:", reason);
+    });
+  } catch (error) {
+    console.error("Error listening to events:", error.message);
+    throw new Error("Failed to listen to events.");
   }
 };

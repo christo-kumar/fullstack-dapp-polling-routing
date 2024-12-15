@@ -99,7 +99,7 @@ const AdminPanel = () => {
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error fetching candidates.");
+        //alert("Error fetching candidates.");
       }
     };
 
@@ -113,10 +113,9 @@ const AdminPanel = () => {
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching election name.");
+        //alert("Error Fetching election name.");
       }
     };
-
     const fetchWinner = async () => {
       try {
         const winner = await getWinner();
@@ -141,7 +140,7 @@ const AdminPanel = () => {
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching voters.");
+        //alert("Error Fetching voters.");
       }
     };
 
@@ -151,7 +150,7 @@ const AdminPanel = () => {
         setElectionStarted(electionState);
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching election start state.");
+        //alert("Error Fetching election start state.");
       }
     };
 
@@ -161,7 +160,7 @@ const AdminPanel = () => {
         setHasElectionFinalized(electionFinalizedState);
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching election finalized state.");
+        //alert("Error Fetching election finalized state.");
       }
     };
 
