@@ -93,9 +93,9 @@
             "type": "uint256"
           },
           {
-            "internalType": "string",
+            "internalType": "uint256",
             "name": "dollarAmount",
-            "type": "string"
+            "type": "uint256"
           }
         ],
         "stateMutability": "view",
@@ -154,9 +154,9 @@
                 "type": "uint256"
               },
               {
-                "internalType": "string",
+                "internalType": "uint256",
                 "name": "dollarAmount",
-                "type": "string"
+                "type": "uint256"
               }
             ],
             "internalType": "struct FundMe.Candidate[]",

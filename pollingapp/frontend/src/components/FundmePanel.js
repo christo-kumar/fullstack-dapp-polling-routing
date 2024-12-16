@@ -134,7 +134,13 @@ const FundmePanel = () => {
         <h2>ETH to USD Price</h2>
         <p>
           {ethToUsdPrice
-            ? `$1 ETH = ${ethToUsdPrice} USD`
+            ? `$1 ETH = ${(Number(ethToUsdPrice) / 1e18).toLocaleString(
+                "en-US",
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              )} USD`
             : "Price not available"}
         </p>
         <button onClick={handleUpdatePrice}>Update Price</button>
@@ -142,12 +148,16 @@ const FundmePanel = () => {
 
       <h2>Funded Candidates</h2>
       <ul>
-        {fundedCandidates.map((candidate) => (
-          <li key={candidate.candidateAddress}>
-            {candidate.name}: {candidate.fundingAmount} ETH ( $
-            {candidate.dollarAmount})
-          </li>
-        ))}
+        {fundedCandidates.map((candidate) => {
+          console.log(candidate); // Check the structure of each candidate object
+          const formattedDollarAmount = Number(candidate.dollarAmount) / 1e36;
+          return (
+            <li key={candidate.candidateAddress}>
+              {candidate.name}: {candidate.fundingAmount} ETH ( $
+              {formattedDollarAmount})
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

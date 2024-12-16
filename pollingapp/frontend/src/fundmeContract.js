@@ -90,9 +90,9 @@ const abi = [
         type: "uint256",
       },
       {
-        internalType: "string",
+        internalType: "uint256",
         name: "dollarAmount",
-        type: "string",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -151,9 +151,9 @@ const abi = [
             type: "uint256",
           },
           {
-            internalType: "string",
+            internalType: "uint256",
             name: "dollarAmount",
-            type: "string",
+            type: "uint256",
           },
         ],
         internalType: "struct FundMe.Candidate[]",
@@ -263,6 +263,7 @@ export const getFundedCandidates = async () => {
       candidateAddress: candidate.candidateAddress,
       name: candidate.name,
       fundingAmount: ethers.formatEther(candidate.fundingAmount), // Convert from wei to ETH
+      dollarAmount: candidate.dollarAmount,
     }));
   } catch (error) {
     console.error("Error fetching candidates:", error.message);
