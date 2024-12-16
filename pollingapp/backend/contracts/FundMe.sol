@@ -56,8 +56,10 @@ contract FundMe {
     }
 
     function updatePrice() public {
+        //price feed adjusted to 8 decimals, 3000 -> 3000.00000000
         (, int256 price,,,) = priceFeed.latestRoundData();
-        ethUsdPrice = uint256(price) * 1e10; // Convert price to 18 decimals
+        //price feed adjusted to 18 decimals, 3000 -> 3000.000000000000000000
+        ethUsdPrice = uint256(price) * 1e10;
 
         for (uint256 i = 0; i < candidateAddresses.length; i++) {
             Candidate storage candidate = candidates[candidateAddresses[i]];
@@ -66,7 +68,6 @@ contract FundMe {
                 candidate.dollarAmount = _uintToString(usdAmountInt);
             }
         }
-
         emit PriceUpdated(ethUsdPrice);
     }
 
