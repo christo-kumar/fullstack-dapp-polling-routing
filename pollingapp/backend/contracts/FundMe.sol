@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import "./provableAPI.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract FundMe is usingProvable {
+contract FundMe {
     struct Candidate {
         address candidateAddress;
         string name;
@@ -14,11 +14,15 @@ contract FundMe is usingProvable {
     mapping(address => Candidate) public candidates;
     address[] public candidateAddresses;
 
-    string public ethUsdPrice; // ETH to USD price (as string for simplicity)
+    AggregatorV3Interface internal priceFeed; // Mocked Chainlink Price Feed
+    uint256 public ethUsdPrice; // ETH to USD price (as uint256 for calculations)
 
     event CandidateFunded(address indexed candidate, uint256 ethAmount);
-    event PriceUpdated(string ethUsdPrice);
-    event PriceUpdateFailed(string reason);
+    event PriceUpdated(uint256 ethUsdPrice);
+
+    constructor(address _priceFeedAddress) {
+        priceFeed = AggregatorV3Interface(_priceFeedAddress); // Pass the mocked price feed address
+    }
 
     function fundCandidate(address _candidateAddress, string memory _name) external payable {
         require(msg.value > 0, "Funding amount must be greater than 0");
@@ -42,7 +46,7 @@ contract FundMe is usingProvable {
         return candidates[_candidateAddress].candidateAddress != address(0);
     }
 
-        function getCandidates() external view returns (Candidate[] memory) {
+    function getCandidates() external view returns (Candidate[] memory) {
         Candidate[] memory result = new Candidate[](candidateAddresses.length);
         for (uint256 i = 0; i < candidateAddresses.length; i++) {
             result[i] = candidates[candidateAddresses[i]];
@@ -50,49 +54,19 @@ contract FundMe is usingProvable {
         return result;
     }
 
-
-    function updatePrice() external {
-        provable_query("URL", "json(https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd).ethereum.usd");
-    }
-
-    function __callback(string memory _result) public {
-        require(msg.sender == provable_cbAddress(), "Caller is not the provable callback address");
-
-        ethUsdPrice = _result;
+    function updatePrice() public {
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        ethUsdPrice = uint256(price) * 1e10; // Convert price to 18 decimals
 
         for (uint256 i = 0; i < candidateAddresses.length; i++) {
             Candidate storage candidate = candidates[candidateAddresses[i]];
-            if (bytes(ethUsdPrice).length > 0 && candidate.fundingAmount > 0) {
-                uint256 ethUsdRate = _parsePrice(ethUsdPrice);
-                uint256 usdAmountInt = (candidate.fundingAmount * ethUsdRate) / 1e18;
+            if (ethUsdPrice > 0 && candidate.fundingAmount > 0) {
+                uint256 usdAmountInt = (candidate.fundingAmount * ethUsdPrice) / 1e18;
                 candidate.dollarAmount = _uintToString(usdAmountInt);
             }
         }
 
-        emit PriceUpdated(_result);
-    }
-
-    function __fallback() public payable {
-        emit PriceUpdateFailed("Price fetch failed or invalid response");
-    }
-
-    function _parsePrice(string memory _price) internal pure returns (uint256) {
-        bytes memory b = bytes(_price);
-        uint256 result = 0;
-        uint256 decimalFactor = 1;
-        bool hasDecimals = false;
-
-        for (uint256 i = 0; i < b.length; i++) {
-            if (b[i] == ".") {
-                hasDecimals = true;
-                decimalFactor = 100;
-            } else {
-                result = result * 10 + (uint8(b[i]) - 48);
-                if (hasDecimals) decimalFactor /= 10;
-            }
-        }
-
-        return result * decimalFactor;
+        emit PriceUpdated(ethUsdPrice);
     }
 
     function _uintToString(uint256 _value) internal pure returns (string memory) {

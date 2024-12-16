@@ -1,30 +1,59 @@
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const fs = require("fs/promises");
+const DECIMALS = "8";
+const INITIAL_PRICE = "200000000000"; // 2000
 
 async function main() {
-  // Deploy the FundMe contract
-  const fundMeContract = await ethers.deployContract("FundMe");
+  // Deploy the MockV3Aggregator
+  const accounts = await ethers.getSigners();
+  const deployer = accounts[0];
 
-  // Retrieve the FundMe contract's artifact
-  const artifact = await hre.artifacts.readArtifact("FundMe");
+  const mockPriceFeedFactory = await ethers.getContractFactory(
+    "MockV3Aggregator"
+  );
 
-  // Write the deployment info to a JSON file
-  await writeDeploymentInfo(fundMeContract, artifact, "FundMe.json");
+  // Deploy MockV3Aggregator
+  const mockPriceFeed = await mockPriceFeedFactory
+    .connect(deployer)
+    .deploy(DECIMALS, INITIAL_PRICE);
 
-  console.log("FundMe contract deployed to:", fundMeContract.target);
+  // Wait for deployment
+  await mockPriceFeed.waitForDeployment();
+
+  console.log(
+    "MockV3Aggregator deployed to:",
+    await mockPriceFeed.getAddress()
+  );
+
+  // Deploy the FundMe contract with the mock price feed address
+  const fundMeFactory = await ethers.getContractFactory("FundMe");
+  const fundMe = await fundMeFactory
+    .connect(deployer)
+    .deploy(await mockPriceFeed.getAddress());
+
+  // Wait for deployment
+  await fundMe.waitForDeployment();
+
+  console.log("FundMe contract deployed to:", await fundMe.getAddress());
+
+  // Save deployment information
+  await writeDeploymentInfo(mockPriceFeed, fundMe);
 }
 
-async function writeDeploymentInfo(contract, artifact, filename = "") {
-  const data = {
-    contract: {
-      address: contract.target,
-      signerAddress: contract.runner.address,
-      abi: artifact.abi,
+async function writeDeploymentInfo(mockPriceFeed, fundMe) {
+  const deploymentInfo = {
+    MockV3Aggregator: {
+      address: await mockPriceFeed.getAddress(),
+    },
+    FundMe: {
+      address: await fundMe.getAddress(),
+      abi: (await hre.artifacts.readArtifact("FundMe")).abi,
     },
   };
 
-  const content = JSON.stringify(data, null, 2);
-  await fs.writeFile(filename, content, { encoding: "utf-8" });
+  const content = JSON.stringify(deploymentInfo, null, 2);
+  await fs.writeFile("FundMe.json", content, { encoding: "utf-8" });
+  console.log("Deployment information saved to FundMe.json");
 }
 
 main().catch((error) => {
