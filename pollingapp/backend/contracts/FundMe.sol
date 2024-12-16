@@ -9,7 +9,7 @@ contract FundMe {
         address candidateAddress;
         string name;
         uint256 fundingAmount; // Total funding in wei
-        string dollarAmount;   // Total funding in USD (string for "N/A" or calculated value)
+        uint256 dollarAmount;   // Total funding in USD (string for "N/A" or calculated value)
     }
 
     mapping(address => Candidate) public candidates;
@@ -33,7 +33,7 @@ contract FundMe {
                 candidateAddress: _candidateAddress,
                 name: _name,
                 fundingAmount: 0,
-                dollarAmount: "N/A"
+                dollarAmount: 0
             });
             candidateAddresses.push(_candidateAddress);
         }
@@ -64,27 +64,10 @@ contract FundMe {
         for (uint256 i = 0; i < candidateAddresses.length; i++) {
             Candidate storage candidate = candidates[candidateAddresses[i]];
             if (ethUsdPrice > 0 && candidate.fundingAmount > 0) {
-                uint256 usdAmountInt = (candidate.fundingAmount * ethUsdPrice) / 1e18;
-                candidate.dollarAmount = _uintToString(usdAmountInt);
+                uint256 usdAmountInt = candidate.fundingAmount * ethUsdPrice;
+                candidate.dollarAmount = usdAmountInt;
             }
         }
         emit PriceUpdated(ethUsdPrice);
-    }
-
-    function _uintToString(uint256 _value) internal pure returns (string memory) {
-        if (_value == 0) return "0";
-        uint256 temp = _value;
-        uint256 digits;
-        while (temp != 0) {
-            digits++;
-            temp /= 10;
-        }
-        bytes memory buffer = new bytes(digits);
-        while (_value != 0) {
-            digits -= 1;
-            buffer[digits] = bytes1(uint8(48 + uint256(_value % 10)));
-            _value /= 10;
-        }
-        return string(buffer);
     }
 }
