@@ -1,7 +1,18 @@
 import { ethers } from "ethers";
 
-const address = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+const address = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
 const abi = [
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_priceFeedAddress",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
   {
     anonymous: false,
     inputs: [
@@ -26,46 +37,13 @@ const abi = [
     inputs: [
       {
         indexed: false,
-        internalType: "string",
-        name: "reason",
-        type: "string",
-      },
-    ],
-    name: "PriceUpdateFailed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "string",
+        internalType: "uint256",
         name: "ethUsdPrice",
-        type: "string",
+        type: "uint256",
       },
     ],
     name: "PriceUpdated",
     type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_result",
-        type: "string",
-      },
-    ],
-    name: "__callback",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "__fallback",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
   },
   {
     inputs: [
@@ -125,9 +103,9 @@ const abi = [
     name: "ethUsdPrice",
     outputs: [
       {
-        internalType: "string",
+        internalType: "uint256",
         name: "",
-        type: "string",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -196,6 +174,7 @@ const abi = [
 ];
 
 const provider = new ethers.BrowserProvider(window.ethereum);
+const rpcProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
 
 // Function to get the signer asynchronously
 export const getSigner = async () => {
@@ -226,7 +205,7 @@ export const getContract = async () => {
 // Function to get contract instance for reading
 export const getContractReadOnly = async () => {
   try {
-    const contract = new ethers.Contract(address, abi, provider);
+    const contract = new ethers.Contract(address, abi, rpcProvider);
     return contract;
   } catch (error) {
     console.error("Error creating contract instance:", error);
@@ -243,7 +222,10 @@ export const fundCandidate = async (
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
     const gasLimit = 1000000;
 
     const value = ethers.parseEther(ethAmount);
@@ -294,7 +276,10 @@ export const updatePrice = async () => {
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
     const gasLimit = 2000000;
     const tx = await contract.updatePrice({ gasLimit, nonce }); // Call the updatePrice function
     console.log("Price update transaction sent:", tx.hash);

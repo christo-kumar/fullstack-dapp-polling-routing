@@ -294,6 +294,7 @@ const abi = [
 ];
 
 const provider = new ethers.BrowserProvider(window.ethereum);
+const rpcProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
 
 // Function to connect to MetaMask
 export const connectMetaMask = async () => {
@@ -335,7 +336,7 @@ export const getContract = async () => {
 // Function to get contract instance for reading
 export const getContractReadOnly = async () => {
   try {
-    const contract = new ethers.Contract(address, abi, provider);
+    const contract = new ethers.Contract(address, abi, rpcProvider);
     return contract;
   } catch (error) {
     console.error("Error creating contract instance:", error);
@@ -349,7 +350,10 @@ export const createElection = async (name, startDate, endDate) => {
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
 
     const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
     const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
@@ -360,7 +364,7 @@ export const createElection = async (name, startDate, endDate) => {
       endTimestamp,
       {
         gasLimit: 1000000, // Optional: Set gas limit
-        nonce, // Explicitly set the nonce
+        nonce,
       }
     );
     console.log("Transaction sent:", tx.hash);
@@ -377,7 +381,10 @@ export const startElection = async () => {
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
 
     // Call the startElection function
     const tx = await contract.startElection({
@@ -430,7 +437,10 @@ export const addCandidate = async (
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
     const tx = await contract.addCandidate(
       candidateAddress,
       name,
@@ -468,7 +478,10 @@ export const addVoter = async (voterAddress, name, age) => {
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
     const tx = await contract.addVoter(voterAddress, name, age, {
       gasLimit: 1000000,
       nonce,
@@ -537,7 +550,10 @@ export const voteForCandidate = async (candidateAddress) => {
     const contract = await getContract();
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
-    const nonce = await provider.getTransactionCount(walletAddress);
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
 
     const tx = await contract.vote(candidateAddress, {
       gasLimit: 1000000,

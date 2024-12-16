@@ -33,3 +33,9 @@ npm install
 
 #12. run the react side
 npm start 
+
+#===============================================================#
+#Oracle setup
+# cd into backend
+npm install @chainlink/contracts@^0.5.1
+
