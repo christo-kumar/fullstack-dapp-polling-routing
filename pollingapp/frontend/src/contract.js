@@ -408,10 +408,17 @@ export const startElection = async () => {
 export const endElection = async () => {
   try {
     const contract = await getContract(); // Get the contract instance
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await rpcProvider.getTransactionCount(
+      walletAddress,
+      "latest"
+    );
 
     // Call the endElection function
     const tx = await contract.endElection({
       gasLimit: 1000000, // Optional: Adjust based on contract requirements
+      nonce,
     });
 
     console.log("Transaction sent to end election:", tx.hash);

@@ -12,7 +12,7 @@ import {
   hasElectionFinalizedFromContract,
   getWinner,
 } from "../contract"; // Ensure these functions are imported correctly
-import { PINATA_JWT, PINATA_GATEWAY } from "../config";
+import { PINATA_JWT } from "../config";
 import placeholderImage from "../Loading.png";
 
 const AdminPanel = () => {
@@ -285,80 +285,87 @@ const AdminPanel = () => {
   };
 
   return (
-    <div>
-      <h1>Admin Panel</h1>
+    <div style={styles.container}>
+      <h1 style={styles.header}>Admin Panel</h1>
 
       {/* Section to create election */}
-      <div>
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>Election Details</h2>
         {electionName ? (
           <h2>Election Name: {electionName}</h2>
         ) : (
           <>
             <h2>Create Election</h2>
             <input
+              style={styles.input}
               type="text"
               placeholder="Election Name"
               value={addElectionName}
               onChange={(e) => setAddElectionName(e.target.value)}
             />
             <input
+              style={styles.input}
               type="datetime-local"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
             <input
+              style={styles.input}
               type="datetime-local"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
-            <button onClick={handleCreateElection}>Create Election</button>
+            <button onClick={handleCreateElection} style={styles.button}>
+              Create Election
+            </button>
           </>
         )}
       </div>
       <div>{winnerName ? <h3>Winner Name: {winnerName}</h3> : <></>}</div>
 
       {/* Section to manage candidates */}
-      <div>
-        <h2>Manage Candidates</h2>
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>Manage Candidates</h2>
         <input
+          style={styles.input}
           type="text"
           placeholder="Candidate Address"
           value={candidateAddress}
           onChange={(e) => setCandidateAddress(e.target.value)}
         />
         <input
+          style={styles.input}
           type="text"
           placeholder="Candidate Name"
           value={candidateName}
           onChange={(e) => setCandidateName(e.target.value)}
         />
         <input
+          style={styles.input}
           type="text"
           placeholder="Candidate Party"
           value={candidateParty}
           onChange={(e) => setCandidateParty(e.target.value)}
         />
-      </div>
-      <div>
-        <h3>Select a Pic of Candidate</h3>
         <input
+          style={styles.input}
           type="file"
           accept="image/*"
           onChange={(e) => setCandidateImage(e.target.files[0])}
         />
-      </div>
-      <div>
-        <h3>Upload A Pic of Candidate</h3>
-        <button onClick={handleUploadToIPFS}>Upload Image to IPFS</button>
+
+        <button style={styles.button} onClick={handleAddCandidate}>
+          Add Candidate
+        </button>
+
+        <button style={styles.button} onClick={handleUploadToIPFS}>
+          Upload Image
+        </button>
       </div>
 
-      <div>
-        <h3>Add the candidate to contract</h3>
-        <button onClick={handleAddCandidate}>Add Candidate</button>
-      </div>
-      <div>
-        <h3>Candidate List</h3>
-        <ul style={{ listStyle: "none", padding: 0 }}>
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>Candidate List</h2>
+        <ul style={styles.list}>
           {candidates.length === 0 ? (
             <li>No candidates available.</li>
           ) : (
@@ -380,7 +387,7 @@ const AdminPanel = () => {
                   {/* Candidate Image */}
                   <img
                     src={candidateImage || placeholderImage}
-                    alt={`${candidate.name}'s image`}
+                    alt={`${candidate.name}`}
                     style={{
                       width: "80px",
                       height: "80px",
@@ -417,27 +424,32 @@ const AdminPanel = () => {
       </div>
 
       {/* Section to manage voters */}
-      <div>
-        <h2>Manage Voters</h2>
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>Manage Voters</h2>
         <input
+          style={styles.input}
           type="text"
           placeholder="Voter Address"
           value={voterAddress}
           onChange={(e) => setVoterAddress(e.target.value)}
         />
         <input
+          style={styles.input}
           type="text"
           placeholder="Voter Name"
           value={voterName}
           onChange={(e) => setVoterName(e.target.value)}
         />
         <input
+          style={styles.input}
           type="number"
           placeholder="Voter Age"
           value={voterAge}
           onChange={(e) => setVoterAge(e.target.value)}
         />
-        <button onClick={handleAddVoter}>Add Voter</button>
+        <button style={styles.button} onClick={handleAddVoter}>
+          Add Voter
+        </button>
         <ul>
           {voters.length === 0 ? (
             <li>No voters available.</li>
@@ -464,6 +476,70 @@ const AdminPanel = () => {
       )}
     </div>
   );
+};
+
+const styles = {
+  container: {
+    fontFamily: "Arial, sans-serif",
+    maxWidth: "800px",
+    margin: "20px auto",
+    padding: "20px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+  },
+  header: {
+    textAlign: "center",
+    color: "#333",
+    marginBottom: "20px",
+  },
+  section: {
+    marginBottom: "30px",
+  },
+  input: {
+    width: "100%",
+    padding: "10px",
+    margin: "10px 0",
+    border: "1px solid #ddd",
+    borderRadius: "4px",
+    boxSizing: "border-box",
+  },
+  button: {
+    padding: "10px 15px",
+    backgroundColor: "#007BFF",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    marginRight: "10px",
+  },
+  buttonSecondary: {
+    backgroundColor: "#6c757d",
+  },
+  list: {
+    listStyle: "none",
+    padding: 0,
+  },
+  listItem: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: "15px",
+    borderBottom: "1px solid #ddd",
+    paddingBottom: "10px",
+  },
+  candidateImage: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    marginRight: "15px",
+  },
+  sectionTitle: {
+    fontSize: "20px",
+    color: "#333",
+    borderBottom: "2px solid #007BFF",
+    paddingBottom: "5px",
+  },
 };
 
 export default AdminPanel;

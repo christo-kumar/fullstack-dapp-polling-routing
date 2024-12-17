@@ -300,9 +300,9 @@ export const listenToPriceUpdates = async (onPriceUpdated) => {
       if (onPriceUpdated) onPriceUpdated(ethUsdPrice); // Trigger the callback with the new price
     });
 
-    contract.on("PriceUpdateFailed", (reason) => {
+    /*contract.on("PriceUpdateFailed", (reason) => {
       console.error("Price update failed:", reason);
-    });
+    });*/
   } catch (error) {
     console.error("Error listening to events:", error.message);
     throw new Error("Failed to listen to events.");

@@ -12,13 +12,12 @@ const FundmePanel = () => {
   const [selectedCandidate, setSelectedCandidate] = useState("");
   const [ethAmount, setEthAmount] = useState("");
   const [fundedCandidates, setFundedCandidates] = useState([]);
-  const [ethToUsdPrice, setEthToUsdPrice] = useState(""); // For storing the latest ETH-to-USD price
+  const [ethToUsdPrice, setEthToUsdPrice] = useState("");
 
-  // Fetch candidates for the dropdown
   useEffect(() => {
     const fetchCandidatesForDropdown = async () => {
       try {
-        const candidatesList = await getCandidates(); // Fetch from contract.js
+        const candidatesList = await getCandidates();
         setCandidates(candidatesList);
       } catch (error) {
         console.error("Error fetching candidates:", error.message);
@@ -29,11 +28,10 @@ const FundmePanel = () => {
     fetchCandidatesForDropdown();
   }, []);
 
-  // Fetch funded candidates
   useEffect(() => {
     const fetchFundedCandidates = async () => {
       try {
-        const fundedCandidatesList = await getFundedCandidates(); // Fetch directly from fundmeContract.js
+        const fundedCandidatesList = await getFundedCandidates();
         setFundedCandidates(fundedCandidatesList);
       } catch (error) {
         console.error("Error fetching funded candidates:", error.message);
@@ -41,14 +39,13 @@ const FundmePanel = () => {
     };
 
     fetchFundedCandidates();
-  }, []); // Fetch once on component mount
+  }, []);
 
-  // Listen to price updates
   useEffect(() => {
     const startListeningToPriceUpdates = async () => {
       try {
         await listenToPriceUpdates((newPrice) => {
-          setEthToUsdPrice(newPrice); // Update the ETH-to-USD price when PriceUpdated event is triggered
+          setEthToUsdPrice(newPrice);
         });
       } catch (error) {
         console.error("Error listening to price updates:", error.message);
@@ -58,7 +55,6 @@ const FundmePanel = () => {
     startListeningToPriceUpdates();
   }, []);
 
-  // Handle funding a candidate
   const handleFundMe = async () => {
     if (!selectedCandidate || !ethAmount) {
       alert("Please select a candidate and enter an ETH amount.");
@@ -73,24 +69,22 @@ const FundmePanel = () => {
         selectedCandidate,
         selectedCandidateData.name,
         ethAmount
-      ); // Fund the candidate
+      );
       alert(`Successfully funded ${ethAmount} ETH to the candidate.`);
 
-      // Refetch funded candidates list after funding
       const updatedFundedCandidates = await getFundedCandidates();
       setFundedCandidates(updatedFundedCandidates);
 
-      setEthAmount(""); // Reset input
+      setEthAmount("");
     } catch (error) {
       console.error("Error funding candidate:", error.message);
       alert("Error while funding the candidate. Please try again.");
     }
   };
 
-  // Handle price update
   const handleUpdatePrice = async () => {
     try {
-      await updatePrice(); // Call updatePrice from the contract
+      await updatePrice();
       alert("Price update initiated. Please wait for confirmation.");
     } catch (error) {
       console.error("Error updating price:", error.message);
@@ -99,12 +93,16 @@ const FundmePanel = () => {
   };
 
   return (
-    <div>
-      <h1>Fund Me Panel</h1>
-      <div>
-        <label htmlFor="candidate-select">Select a Candidate:</label>
+    <div style={styles.panelContainer}>
+      <h1 style={styles.title}>Fund Me Panel</h1>
+
+      <div style={styles.section}>
+        <label htmlFor="candidate-select" style={styles.label}>
+          Select a Candidate:
+        </label>
         <select
           id="candidate-select"
+          style={styles.select}
           onChange={(e) => setSelectedCandidate(e.target.value)}
         >
           <option value="">Select a Candidate</option>
@@ -118,21 +116,27 @@ const FundmePanel = () => {
           ))}
         </select>
       </div>
-      <div>
-        <label htmlFor="eth-amount">Enter ETH Amount:</label>
+
+      <div style={styles.section}>
+        <label htmlFor="eth-amount" style={styles.label}>
+          Enter ETH Amount:
+        </label>
         <input
           id="eth-amount"
           type="number"
           value={ethAmount}
           onChange={(e) => setEthAmount(e.target.value)}
           placeholder="0.1"
+          style={styles.input}
         />
       </div>
-      <button onClick={handleFundMe}>Fund Me</button>
+      <button style={styles.button} onClick={handleFundMe}>
+        Fund Me
+      </button>
 
-      <div>
-        <h2>ETH to USD Price</h2>
-        <p>
+      <div style={styles.section}>
+        <h2 style={styles.subtitle}>ETH to USD Price</h2>
+        <p style={styles.price}>
           {ethToUsdPrice
             ? `$1 ETH = ${(Number(ethToUsdPrice) / 1e18).toLocaleString(
                 "en-US",
@@ -143,24 +147,94 @@ const FundmePanel = () => {
               )} USD`
             : "Price not available"}
         </p>
-        <button onClick={handleUpdatePrice}>Update Price</button>
+        <button style={styles.button} onClick={handleUpdatePrice}>
+          Update Price
+        </button>
       </div>
 
-      <h2>Funded Candidates</h2>
-      <ul>
+      <h2 style={styles.subtitle}>Funded Candidates</h2>
+      <ul style={styles.list}>
         {fundedCandidates.map((candidate) => {
-          console.log(candidate); // Check the structure of each candidate object
           const formattedDollarAmount = Number(candidate.dollarAmount) / 1e36;
           return (
-            <li key={candidate.candidateAddress}>
-              {candidate.name}: {candidate.fundingAmount} ETH ( $
-              {formattedDollarAmount})
+            <li key={candidate.candidateAddress} style={styles.listItem}>
+              {candidate.name}: {candidate.fundingAmount} ETH ($
+              {formattedDollarAmount.toFixed(2)})
             </li>
           );
         })}
       </ul>
     </div>
   );
+};
+
+const styles = {
+  panelContainer: {
+    maxWidth: "600px",
+    margin: "0 auto",
+    padding: "20px",
+    border: "1px solid #ddd",
+    borderRadius: "8px",
+    backgroundColor: "#f9f9f9",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+  },
+  title: {
+    textAlign: "center",
+    color: "#333",
+  },
+  section: {
+    marginBottom: "16px",
+  },
+  label: {
+    display: "block",
+    marginBottom: "8px",
+    fontWeight: "bold",
+    color: "#555",
+  },
+  select: {
+    width: "100%",
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
+  input: {
+    width: "100%",
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
+  button: {
+    display: "block",
+    width: "100%",
+    padding: "10px",
+    marginTop: "10px",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+  },
+  buttonHover: {
+    backgroundColor: "#0056b3",
+  },
+  subtitle: {
+    marginBottom: "10px",
+    color: "#444",
+  },
+  price: {
+    fontSize: "1.2em",
+    color: "#2b8a3e",
+    marginBottom: "10px",
+  },
+  list: {
+    listStyle: "none",
+    padding: "0",
+  },
+  listItem: {
+    marginBottom: "8px",
+    padding: "8px",
+    borderBottom: "1px solid #ddd",
+  },
 };
 
 export default FundmePanel;
