@@ -4,20 +4,21 @@ const DECIMALS = "8";
 const INITIAL_PRICE = "200000000000"; // 2000
 
 async function main() {
-  // Deploy the MockV3Aggregator
+  //1. Get the signer/deployer
   const accounts = await ethers.getSigners();
   const deployer = accounts[0];
 
+  //2. Get Contract Factory For MockV3Aggregator
   const mockPriceFeedFactory = await ethers.getContractFactory(
     "MockV3Aggregator"
   );
 
-  // Deploy MockV3Aggregator
+  //3. Deploy MockV3Aggregator with help of Deployer to get priceFeed
   const mockPriceFeed = await mockPriceFeedFactory
     .connect(deployer)
     .deploy(DECIMALS, INITIAL_PRICE);
 
-  // Wait for deployment
+  //4. Wait for deployment of priceFeed
   await mockPriceFeed.waitForDeployment();
 
   console.log(
@@ -25,18 +26,20 @@ async function main() {
     await mockPriceFeed.getAddress()
   );
 
-  // Deploy the FundMe contract with the mock price feed address
+  //5. Get Contract Factory for FundMe
   const fundMeFactory = await ethers.getContractFactory("FundMe");
+
+  //6. Deploy the fund me with deployer and priceFeed's address
   const fundMe = await fundMeFactory
     .connect(deployer)
     .deploy(await mockPriceFeed.getAddress());
 
-  // Wait for deployment
+  //7. Wait for deployment of fundme
   await fundMe.waitForDeployment();
 
   console.log("FundMe contract deployed to:", await fundMe.getAddress());
 
-  // Save deployment information
+  //At Last: Save deployment information abi interfaces and address to FundMe.json
   await writeDeploymentInfo(mockPriceFeed, fundMe);
 }
 

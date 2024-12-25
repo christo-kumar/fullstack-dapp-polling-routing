@@ -6,8 +6,9 @@ cd backend
 #3. make sure node is installed, validate the by checking version
 npm -v
 
-#4. install hardhat if not installed
+#4. install hardhat & chainlink if not installed
 npm install --save-dev hardhat
+npm install @chainlink/contracts@^0.5.1
 
 #5. do npm install
 npm install
@@ -34,8 +35,5 @@ npm install
 #12. run the react side
 npm start 
 
-#===============================================================#
-#Oracle setup
-# cd into backend
-npm install @chainlink/contracts@^0.5.1
+
 

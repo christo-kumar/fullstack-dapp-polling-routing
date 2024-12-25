@@ -165,8 +165,34 @@ const abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_candidateAddress",
+        type: "address",
+      },
+    ],
+    name: "getFundingForCandidate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "updatePrice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawFunds",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -213,6 +239,35 @@ export const getContractReadOnly = async () => {
   }
 };
 
+export const getFundedCandidates = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const candidates = await contract.getCandidates();
+    return candidates.map((candidate) => ({
+      candidateAddress: candidate.candidateAddress,
+      name: candidate.name,
+      fundingAmount: ethers.formatEther(candidate.fundingAmount), // Convert from wei to ETH
+      dollarAmount: candidate.dollarAmount,
+    }));
+  } catch (error) {
+    console.error("Error fetching candidates:", error.message);
+    throw new Error("Failed to fetch candidates.");
+  }
+};
+
+export const getFundingForCandidate = async (candidateAddress) => {
+  try {
+    const contract = await getContractReadOnly();
+    const fundingAmount = await contract.getFundingForCandidate(
+      candidateAddress
+    );
+    return ethers.formatEther(fundingAmount); // Convert from wei to ETH
+  } catch (error) {
+    console.error("Error fetching funding amount:", error.message);
+    throw new Error("Failed to fetch funding amount.");
+  }
+};
+
 export const fundCandidate = async (
   candidateAddress,
   candiateName,
@@ -239,35 +294,6 @@ export const fundCandidate = async (
   } catch (error) {
     console.error("Error funding candidate:", error.message);
     throw new Error("Failed to fund the candidate. Please try again.");
-  }
-};
-
-export const getFundingForCandidate = async (candidateAddress) => {
-  try {
-    const contract = await getContractReadOnly();
-    const fundingAmount = await contract.getFundingForCandidate(
-      candidateAddress
-    );
-    return ethers.formatEther(fundingAmount); // Convert from wei to ETH
-  } catch (error) {
-    console.error("Error fetching funding amount:", error.message);
-    throw new Error("Failed to fetch funding amount.");
-  }
-};
-
-export const getFundedCandidates = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const candidates = await contract.getCandidates();
-    return candidates.map((candidate) => ({
-      candidateAddress: candidate.candidateAddress,
-      name: candidate.name,
-      fundingAmount: ethers.formatEther(candidate.fundingAmount), // Convert from wei to ETH
-      dollarAmount: candidate.dollarAmount,
-    }));
-  } catch (error) {
-    console.error("Error fetching candidates:", error.message);
-    throw new Error("Failed to fetch candidates.");
   }
 };
 
